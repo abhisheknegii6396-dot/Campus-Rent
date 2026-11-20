@@ -1,0 +1,8 @@
+{
+  "name": "CampusRent",
+  "description": "Campus-focused peer-to-peer and local-vendor rental marketplace for DBS Global University (DGU) students in Dehradun.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

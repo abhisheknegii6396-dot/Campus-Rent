@@ -1,0 +1,354 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Shared security primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerified() && request.auth.uid == userId;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerified() && request.auth.token.email == 'abhisheknegii6396@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (isVerified() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    function isValidCategory(cat) {
+      return cat in [
+        'Bikes & Scooters',
+        'Electronics',
+        'Appliances',
+        'Furniture',
+        'Sports Equipment',
+        'Hostel Essentials'
+      ];
+    }
+
+    function isValidListing(data) {
+      return data.keys().hasAll([
+          'id',
+          'title',
+          'category',
+          'description',
+          'specs',
+          'condition',
+          'rates',
+          'securityDeposit',
+          'distanceKm',
+          'pickupLandmark',
+          'provider',
+          'availability',
+          'imageUrl',
+          'ownerUid',
+          'isPublic',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'title',
+          'category',
+          'description',
+          'specs',
+          'condition',
+          'rates',
+          'securityDeposit',
+          'distanceKm',
+          'pickupLandmark',
+          'provider',
+          'availability',
+          'imageUrl',
+          'ownerUid',
+          'isPublic',
+          'isCustom',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        data.title is string && data.title.size() >= 2 && data.title.size() <= 120 &&
+        data.category is string && isValidCategory(data.category) &&
+        data.description is string && data.description.size() >= 1 && data.description.size() <= 800 &&
+        data.specs is list && data.specs.size() >= 1 && data.specs.size() <= 8 &&
+        data.specs[0] is string && data.specs[0].size() >= 1 && data.specs[0].size() <= 120 &&
+        data.condition is string && data.condition.size() >= 2 && data.condition.size() <= 100 &&
+        data.rates is map &&
+        data.rates.keys().hasAll(['daily', 'weekly', 'monthly']) &&
+        data.rates.keys().hasOnly(['daily', 'weekly', 'monthly']) &&
+        data.rates.daily is number && data.rates.daily > 0 && data.rates.daily <= 50000 &&
+        data.rates.weekly is number && data.rates.weekly > 0 && data.rates.weekly <= 200000 &&
+        data.rates.monthly is number && data.rates.monthly > 0 && data.rates.monthly <= 500000 &&
+        data.securityDeposit is number && data.securityDeposit >= 0 && data.securityDeposit <= 100000 &&
+        data.distanceKm is number && data.distanceKm > 0 && data.distanceKm <= 50 &&
+        data.pickupLandmark is string && data.pickupLandmark.size() >= 2 && data.pickupLandmark.size() <= 160 &&
+        data.provider is map &&
+        data.provider.keys().hasAll(['name', 'proximity', 'responseTime', 'whatsappPhone', 'verified']) &&
+        data.provider.keys().hasOnly(['name', 'proximity', 'responseTime', 'whatsappPhone', 'verified']) &&
+        data.provider.name is string && data.provider.name.size() >= 2 && data.provider.name.size() <= 120 &&
+        data.provider.proximity is string && data.provider.proximity.size() >= 2 && data.provider.proximity.size() <= 120 &&
+        data.provider.responseTime is string && data.provider.responseTime.size() >= 2 && data.provider.responseTime.size() <= 80 &&
+        data.provider.whatsappPhone is string && data.provider.whatsappPhone.size() >= 8 && data.provider.whatsappPhone.size() <= 20 &&
+        data.provider.verified is bool &&
+        data.availability in ['Available Now', 'Booked'] &&
+        data.imageUrl is string && data.imageUrl.size() >= 1 && data.imageUrl.size() <= 500 &&
+        isValidId(data.ownerUid) &&
+        data.isPublic is bool &&
+        (!('isCustom' in data) || data.isCustom is bool) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll([
+          'requestId',
+          'itemId',
+          'itemTitle',
+          'itemCategory',
+          'itemImage',
+          'providerName',
+          'providerPhone',
+          'providerUid',
+          'pickupLandmark',
+          'durationTier',
+          'durationCount',
+          'unitRate',
+          'securityDeposit',
+          'estimatedRentalCost',
+          'studentUid',
+          'studentName',
+          'hostelOrPg',
+          'studentPhone',
+          'pickupDate',
+          'notes',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'requestId',
+          'itemId',
+          'itemTitle',
+          'itemCategory',
+          'itemImage',
+          'providerName',
+          'providerPhone',
+          'providerUid',
+          'pickupLandmark',
+          'durationTier',
+          'durationCount',
+          'unitRate',
+          'securityDeposit',
+          'estimatedRentalCost',
+          'studentUid',
+          'studentName',
+          'hostelOrPg',
+          'studentPhone',
+          'pickupDate',
+          'notes',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.requestId) &&
+        isValidId(data.itemId) &&
+        data.itemTitle is string && data.itemTitle.size() >= 2 && data.itemTitle.size() <= 120 &&
+        data.itemCategory is string && isValidCategory(data.itemCategory) &&
+        data.itemImage is string && data.itemImage.size() >= 1 && data.itemImage.size() <= 500 &&
+        data.providerName is string && data.providerName.size() >= 2 && data.providerName.size() <= 120 &&
+        data.providerPhone is string && data.providerPhone.size() >= 8 && data.providerPhone.size() <= 20 &&
+        isValidId(data.providerUid) &&
+        data.pickupLandmark is string && data.pickupLandmark.size() >= 2 && data.pickupLandmark.size() <= 160 &&
+        data.durationTier in ['Daily', 'Weekly', 'Monthly'] &&
+        data.durationCount is number && data.durationCount >= 1 && data.durationCount <= 36 &&
+        data.unitRate is number && data.unitRate > 0 && data.unitRate <= 500000 &&
+        data.securityDeposit is number && data.securityDeposit >= 0 && data.securityDeposit <= 100000 &&
+        data.estimatedRentalCost is number && data.estimatedRentalCost > 0 && data.estimatedRentalCost <= 2000000 &&
+        isValidId(data.studentUid) &&
+        data.studentName is string && data.studentName.size() >= 2 && data.studentName.size() <= 100 &&
+        data.hostelOrPg is string && data.hostelOrPg.size() >= 2 && data.hostelOrPg.size() <= 140 &&
+        data.studentPhone is string && data.studentPhone.size() >= 10 && data.studentPhone.size() <= 20 &&
+        data.pickupDate is string && data.pickupDate.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        data.notes is string && data.notes.size() <= 400 &&
+        data.status in ['Pending Confirmation', 'Approved', 'Active Rental', 'Returned', 'Declined'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidUserPublic(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'themePreference', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'themePreference', 'createdAt', 'updatedAt']) &&
+        isValidId(data.uid) &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500)) &&
+        data.themePreference in ['light', 'dark'] &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivate(data) {
+      return data.keys().hasAll(['uid', 'email', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'defaultHostelOrPg', 'defaultPhone', 'updatedAt']) &&
+        isValidId(data.uid) &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+        (!('defaultHostelOrPg' in data) || (data.defaultHostelOrPg is string && data.defaultHostelOrPg.size() <= 140)) &&
+        (!('defaultPhone' in data) || (data.defaultPhone is string && data.defaultPhone.size() <= 20)) &&
+        data.updatedAt is timestamp;
+    }
+
+    // Connection check path
+    match /test/connection {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    // Admin registry (read-only by self)
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list, write: if false;
+    }
+
+    // Public rental catalog listings
+    match /listings/{listingId} {
+      allow get: if isValidId(listingId) && (existing().isPublic == true || isOwner(existing().ownerUid) || isAdmin());
+      allow list: if resource.data.isPublic == true;
+
+      allow create: if isVerified() &&
+        isValidId(listingId) &&
+        isValidListing(incoming()) &&
+        incoming().id == listingId &&
+        incoming().ownerUid == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerified() &&
+        isValidId(listingId) &&
+        isValidListing(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (isOwner(existing().ownerUid) || isAdmin()) &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['availability', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'category', 'description', 'specs', 'condition', 'rates',
+            'securityDeposit', 'distanceKm', 'pickupLandmark', 'provider',
+            'availability', 'imageUrl', 'updatedAt'
+          ])
+        );
+
+      allow delete: if isVerified() &&
+        isValidId(listingId) &&
+        (isOwner(existing().ownerUid) || isAdmin());
+    }
+
+    // Student booking requests (strictly isolated PII)
+    match /bookings/{bookingId} {
+      allow get: if isVerified() &&
+        isValidId(bookingId) &&
+        (existing().studentUid == request.auth.uid || existing().providerUid == request.auth.uid || isAdmin());
+
+      allow list: if isVerified() &&
+        (resource.data.studentUid == request.auth.uid || resource.data.providerUid == request.auth.uid || isBootstrappedAdmin());
+
+      allow create: if isVerified() &&
+        isValidId(bookingId) &&
+        isValidBooking(incoming()) &&
+        incoming().requestId == bookingId &&
+        incoming().studentUid == request.auth.uid &&
+        incoming().status == 'Pending Confirmation' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        exists(/databases/$(database)/documents/listings/$(incoming().itemId)) &&
+        get(/databases/$(database)/documents/listings/$(incoming().itemId)).data.ownerUid == incoming().providerUid;
+
+      allow update: if isVerified() &&
+        isValidId(bookingId) &&
+        isValidBooking(incoming()) &&
+        incoming().requestId == existing().requestId &&
+        incoming().itemId == existing().itemId &&
+        incoming().studentUid == existing().studentUid &&
+        incoming().providerUid == existing().providerUid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+        (
+          isAdmin() ||
+          (
+            existing().providerUid == request.auth.uid &&
+            !(existing().status in ['Returned', 'Declined']) &&
+            (
+              (existing().status == 'Pending Confirmation' && incoming().status in ['Approved', 'Declined']) ||
+              (existing().status == 'Approved' && incoming().status == 'Active Rental') ||
+              (existing().status == 'Active Rental' && incoming().status == 'Returned')
+            )
+          ) ||
+          (
+            existing().studentUid == request.auth.uid &&
+            existing().status == 'Pending Confirmation' &&
+            incoming().status == 'Declined'
+          )
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    // User profile & split private PII
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isVerified() && resource.data.uid == request.auth.uid;
+
+      allow create: if isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserPublic(incoming()) &&
+        incoming().uid == userId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserPublic(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'themePreference', 'updatedAt']);
+
+      match /private/{docId} {
+        allow get: if isValidId(userId) && isValidId(docId) && isOwner(userId);
+        allow list: if isVerified() && resource.data.uid == request.auth.uid;
+
+        allow create, update: if isOwner(userId) &&
+          isValidId(userId) &&
+          isValidId(docId) &&
+          isValidUserPrivate(incoming()) &&
+          incoming().uid == userId &&
+          incoming().updatedAt == request.time;
+      }
+    }
+  }
+}

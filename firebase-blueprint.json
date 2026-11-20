@@ -1,0 +1,348 @@
+{
+  "entities": {
+    "Listing": {
+      "title": "Listing",
+      "description": "Campus rental item listed by a verified DGU Dehradun provider or peer.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Bikes & Scooters",
+            "Electronics",
+            "Appliances",
+            "Furniture",
+            "Sports Equipment",
+            "Hostel Essentials"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 800
+        },
+        "specs": {
+          "type": "array",
+          "description": "Up to 8 specification bullet strings."
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "rates": {
+          "type": "object",
+          "description": "Daily, weekly, and monthly INR rental rates."
+        },
+        "securityDeposit": {
+          "type": "number"
+        },
+        "distanceKm": {
+          "type": "number"
+        },
+        "pickupLandmark": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "provider": {
+          "type": "object",
+          "description": "Verified local vendor metadata and proximity."
+        },
+        "availability": {
+          "type": "string",
+          "enum": ["Available Now", "Booked"]
+        },
+        "imageUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "ownerUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "isCustom": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category",
+        "description",
+        "specs",
+        "condition",
+        "rates",
+        "securityDeposit",
+        "distanceKm",
+        "pickupLandmark",
+        "provider",
+        "availability",
+        "imageUrl",
+        "ownerUid",
+        "isPublic",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BookingRequest": {
+      "title": "BookingRequest",
+      "description": "Student rental booking request ticket linked to a listing and student UID.",
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "itemId": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "itemTitle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "itemCategory": {
+          "type": "string",
+          "enum": [
+            "Bikes & Scooters",
+            "Electronics",
+            "Appliances",
+            "Furniture",
+            "Sports Equipment",
+            "Hostel Essentials"
+          ]
+        },
+        "itemImage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "providerName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "providerPhone": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 20
+        },
+        "providerUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pickupLandmark": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 160
+        },
+        "durationTier": {
+          "type": "string",
+          "enum": ["Daily", "Weekly", "Monthly"]
+        },
+        "durationCount": {
+          "type": "number"
+        },
+        "unitRate": {
+          "type": "number"
+        },
+        "securityDeposit": {
+          "type": "number"
+        },
+        "estimatedRentalCost": {
+          "type": "number"
+        },
+        "studentUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "studentName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "hostelOrPg": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "studentPhone": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 20
+        },
+        "pickupDate": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 20,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Pending Confirmation",
+            "Approved",
+            "Active Rental",
+            "Returned",
+            "Declined"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "requestId",
+        "itemId",
+        "itemTitle",
+        "itemCategory",
+        "itemImage",
+        "providerName",
+        "providerPhone",
+        "providerUid",
+        "pickupLandmark",
+        "durationTier",
+        "durationCount",
+        "unitRate",
+        "securityDeposit",
+        "estimatedRentalCost",
+        "studentUid",
+        "studentName",
+        "hostelOrPg",
+        "studentPhone",
+        "pickupDate",
+        "notes",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserPublicProfile": {
+      "title": "UserPublicProfile",
+      "description": "Non-PII display preferences for an authenticated user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "themePreference": {
+          "type": "string",
+          "enum": ["light", "dark"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "displayName", "themePreference", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Strictly owner-only PII such as email, saved hostel/PG, and WhatsApp phone.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "defaultHostelOrPg": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "defaultPhone": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/listings/{listingId}": {
+      "schema": { "$ref": "#/entities/Listing" },
+      "description": "Public campus rental catalog items managed by owners or admins."
+    },
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/BookingRequest" },
+      "description": "Private rental booking requests accessible only to the student, listing provider, or admin."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPublicProfile" },
+      "description": "User display name and theme preference."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Strictly isolated PII for the authenticated student."
+    }
+  }
+}
